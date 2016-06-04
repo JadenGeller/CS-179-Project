@@ -36,18 +36,21 @@ else
 endif
 
 
-TARGETS = main.o
+TARGETS = main
 
 all: $(TARGETS)
 
-main.o: main.cpp multiobjective_optimization.o ta_utilities.o
-	$(CC) $< -o $@ multiobjective_optimization.o ta_utilities.o -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH) -fopenmp 	
+main: main.o multiobjective_optimization.o genetic_algorithm.o genetic_algorithm_cuda.o ta_utilities.o
+	$(CC) -o $@ $^ -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH) -fopenmp 	
 
-multiobjective_optimization.o: multiobjective_optimization.cpp genetic_algorithm.o 
-	$(CC) $< -o $@ genetic_algorithm.o -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH) -fopenmp
+main.o: main.cpp
+	$(CC) -std=c++11 -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH) -o $@ -c $<
 
-genetic_algorithm.o: genetic_algorithm.cpp genetic_algorithm_cuda.o 
-	$(CC) $< -o $@ genetic_algorithm_cuda.o -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH) -fopenmp
+multiobjective_optimization.o: multiobjective_optimization.cpp
+	$(CC) -std=c++11 -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH) -o $@ -c $<
+
+genetic_algorithm.o: genetic_algorithm.cpp
+	$(CC) -std=c++11 -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH) -o $@ -c $<
 
 genetic_algorithm_cuda.o: genetic_algorithm_cuda.cu
 	$(NVCC) $(NVCCFLAGS) -O3 $(EXTRA_NVCCFLAGS) $(GENCODE_FLAGS) -I$(CUDA_INC_PATH) -o $@ -c $<
