@@ -24,7 +24,7 @@ TODO
 
 TODO
 
-Blah [[1]](#footnote_1)
+Blah [[1]](#references)
 
 ### Template Metaprogramming
 
@@ -42,4 +42,4 @@ TODO
 
 ## References
 
-<a name="footnote_1">1.</a> ["Nash Genetic Algorithms : examples and applications"](http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=870339)
+1. ["Nash Genetic Algorithms : examples and applications"](http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=870339)
