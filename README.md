@@ -19,7 +19,9 @@ u2(t1, t2) = -t2(t2 - t1 - 8)
 
 The Nash equilbiria of this strategic game is the equilibria where neither country would increase their payoff by increasing their tariff. In this particular game, analytical computations calculate that the unique Nash equilbrium is `(t1*, t2*) = (4, 6)`. We will determine whether similiar results can be achieved using our genetic algorithm framework.
 
-## Installation and Usage
+### Genetic Algorithms
+
+Genetic algorithms are used to solve optimization problems using a process similar to natural selection. This class of algorithms generates and measures the fitness of massive populations across many iterations, so it’s a promising candidate for GPU acceleration since each gene's fitness can be computed on an individual thread.
 
 ## Design
 
@@ -52,6 +54,8 @@ TODO
 TODO: Talk about focused on CUDA lambdas and parallelization
 TODO: Talk about mutation, cross, etc.
 TODO: Talk about constraints, maximization, etc.
+
+## Installation and Usage
 
 ## Results
 
