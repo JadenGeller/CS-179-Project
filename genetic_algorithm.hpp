@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <cuda_runtime.h>
 #include <nvfunctional>
+#include <curand_kernel.h>
 
 // TODO: Potentially make generic using template parameters. This might hurt performance though
 //       since we'd have to introduce another lambda.
@@ -18,6 +19,7 @@ namespace genetic_algorithm {
     struct thread_data {
         genome_t genome;
         fitness_t fitness;
+        curandState rand_state;
     };
     
     // Stored on stack
@@ -36,20 +38,20 @@ namespace genetic_algorithm {
         // Return a random genome.
         // GPU TODO: How will we get entropy from the GPU? Will it have to be passed in,
         //           or can we generate it dynamically.
-        nvstd::function<genome_t(island_index index)> spawn;
+        nvstd::function<genome_t(island_index index, curandState_t *rand_state)> spawn;
         
         // Evaluate the `test_genome` returning its fitness.
         // Note that `competitor_genomes` is an array of the best genomes in each kingdom,
         // ordered by kingdom, fomr `test_genomes` cross section of the world.
-        nvstd::function<fitness_t(island_index index, genome_t test_genome, genome_t *competitor_genomes)> evaluate;
+        nvstd::function<fitness_t(island_index index, genome_t test_genome, genome_t *competitor_genomes, curandState_t *rand_state)> evaluate;
         
         // DECIDE: Should we allow the caller to determine whether or not its mutated like this?
         // Mutate a genome or leave it alone.
-        nvstd::function<void(island_index index, size_t genome_index, genome_t *genome)> mutate;
+        nvstd::function<void(island_index index, size_t genome_index, genome_t *genome, curandState_t *rand_state)> mutate;
         
         // DECIDE: Any reason to share the genome indices here? It seems inconsistent to not.
         // Cross two genomes.
-        nvstd::function<genome_t(island_index index, genome_t genome_x, genome_t genome_y)> cross;
+        nvstd::function<genome_t(island_index index, genome_t genome_x, genome_t genome_y, curandState_t *rand_state)> cross;
     };
     
     class simulation {

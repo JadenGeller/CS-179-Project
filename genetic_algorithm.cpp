@@ -62,20 +62,20 @@ void checkCUDAKernelError()
 namespace genetic_algorithm {
     // GPU TODO: For now, we'll just return a pointer to the global memory (w/ all of the best values)
     //           after it runs. We should figure out a better alternative to this on the GPU.
-    void simulation::run(specification_t specification, size_t max_iterations, float *results) {
+    void simulation::run(specification_t specification, size_t max_iterations, float * const results) {
         unsigned blocks = specification.kingdom_count * specification.island_count_per_kingdom;
         unsigned threadsPerBlock = specification.island_population;
         
-        genome_t *dev_inboxes;
+        genome_t * dev_inboxes;
         gpuErrchk(cudaMalloc((void **)&dev_inboxes, blocks * sizeof(genome_t)));
         
         cudaCallSimulation(blocks, threadsPerBlock, dev_inboxes, specification, operations, max_iterations);
         checkCUDAKernelError();
         
         gpuErrchk(cudaMemcpy(
-            dev_inboxes,
             results,
-            specification.kingdom_count * sizeof(float),
+            dev_inboxes,
+            specification.kingdom_count * sizeof(genome_t),
             cudaMemcpyDeviceToHost
         ));
         cudaFree(dev_inboxes);

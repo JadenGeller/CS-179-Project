@@ -50,10 +50,10 @@ multiobjective_optimization.o: multiobjective_optimization.cpp
 	$(CC) -std=c++11 -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH) -o $@ -c $<
 
 genetic_algorithm.o: genetic_algorithm.cpp
-	$(CC) -std=c++11 -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH) -o $@ -c $<
+	$(NVCC) -std=c++11 --expt-extended-lambda $(NVCCFLAGS) -O3 $(EXTRA_NVCCFLAGS) $(GENCODE_FLAGS) -I$(CUDA_INC_PATH) -x cu -o $@ -c $<
 
 genetic_algorithm_cuda.o: genetic_algorithm_cuda.cu
-	$(NVCC) -std=c++11 --expt-extended-lambda $(NVCCFLAGS) -O3 $(EXTRA_NVCCFLAGS) $(GENCODE_FLAGS) -I$(CUDA_INC_PATH) -o $@ -c $<
+	$(NVCC) -std=c++11 --expt-extended-lambda $(NVCCFLAGS) -O3 $(EXTRA_NVCCFLAGS) $(GENCODE_FLAGS) -I$(CUDA_INC_PATH) -x cu -o $@ -c $<
 
 ta_utilities.o: ta_utilities.cpp
 	$(CC) -std=c++11 -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH) -o $@ -c $<

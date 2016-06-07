@@ -1,34 +1,44 @@
 #include "genetic_algorithm_cuda.cuh"
 
-using namespace genetic_algorithm;
-
 // Helpers for accessing a specific inbox by index
 #define mailboxes(cross_section) (inboxes + (cross_section) * specification.kingdom_count)
 #define inbox(index) (mailboxes((index).cross_section_index) + (index).kingdom_index)
+
+using namespace genetic_algorithm;
 
 __global__
 void cudaSimulationKernel(genome_t *inboxes, specification_t specification, operations_t operations, size_t max_iterations) {
     extern __shared__ thread_data shared_memory[];
     thread_data *thread_memory = shared_memory + threadIdx.x;
-
-    island_index index = (island_index){
-        .kingdom_index = blockIdx.x / specification.island_count_per_kingdom,
-        .cross_section_index = blockIdx.x % specification.island_count_per_kingdom
-    };
-
+    
+    island_index index;
+    index.kingdom_index = blockIdx.x / specification.island_count_per_kingdom;
+    index.cross_section_index = blockIdx.x % specification.island_count_per_kingdom;
+    //    island_index index = (island_index){
+    //        .kingdom_index = blockIdx.x / specification.island_count_per_kingdom,
+    //        .cross_section_index = blockIdx.x % specification.island_count_per_kingdom
+    //    };
+    
+    // Seed the random number generator
+    // Note we can simply see with the thread index since we don't care to have random
+    // behavior between multiple invocations, only between threads
+    curand_init(blockIdx.x * blockDim.x + threadIdx.x, 1, 0, &thread_memory->rand_state);
+    
     // Initialize individual
-    thread_memory->genome = operations.spawn(index);
+    //    auto x = operations.spawn;
+    //    printf("%p ", x);
+    //    thread_memory->genome = operations.spawn(index, &thread_memory->rand_state);
     
-    
+    return;
     for (size_t i = 0; i < max_iterations; i++) {
         // Evaluate individual
-        thread_memory->fitness = operations.evaluate(index, thread_memory->genome, mailboxes(index.cross_section_index));
-
+        thread_memory->fitness = operations.evaluate(index, thread_memory->genome, mailboxes(index.cross_section_index), &thread_memory->rand_state);
+        
         // Perform reduction
         for (size_t bound = blockDim.x >> 1; bound > 0; bound >>= 1) {
             thread_data *other_memory = thread_memory + bound;
             syncthreads();
-
+            
             // TODO: Allow selection between minimum and maximum.
             // Copy the maximum value of thread and other to the opposite
             if (thread_memory->fitness > other_memory->fitness) {
@@ -49,12 +59,12 @@ void cudaSimulationKernel(genome_t *inboxes, specification_t specification, oper
             // Outward
             {
                 // Send updated elite genome to next island in kingdom
-                island_index next_index = ((island_index){
-                    .kingdom_index = index.kingdom_index,
-                    .cross_section_index = (index.cross_section_index + 1) % specification.island_count_per_kingdom
-                });
+                //                island_index next_index = ((island_index){
+                //                    .kingdom_index = index.kingdom_index,
+                //                    .cross_section_index = (index.cross_section_index + 1) % specification.island_count_per_kingdom
+                //                });
                 // Note that this thread's genome in shared memory is the best since we reduced left
-                *inbox(next_index) = thread_memory->genome;
+                //                *inbox(next_index) = thread_memory->genome;
             }
             
             // Inward
@@ -68,21 +78,22 @@ void cudaSimulationKernel(genome_t *inboxes, specification_t specification, oper
         }
         
         // Perform mutation
-        operations.mutate(index, threadIdx.x, &thread_memory->genome);
-
+        operations.mutate(index, threadIdx.x, &thread_memory->genome, &thread_memory->rand_state);
+        
         // Perform crosses
         if (threadIdx.x % 2 == 1) {
             shared_memory[threadIdx.x].genome = operations.cross(
-                index,
-                shared_memory[threadIdx.x - 1].genome,
-                shared_memory[threadIdx.x].genome
-            );
+                                                                 index,
+                                                                 shared_memory[threadIdx.x - 1].genome,
+                                                                 shared_memory[threadIdx.x].genome,
+                                                                 &thread_memory->rand_state
+                                                                 );
         }
     }
 }
 
-void cudaCallSimulation(const size_t blocks, const size_t threadsPerBlock, genome_t *inboxes, specification_t specification, operations_t operations, size_t max_iterations) {
+void cudaCallSimulation(const size_t blocks, const size_t threadsPerBlock, genome_t * const inboxes, specification_t specification, operations_t operations, size_t max_iterations) {
     unsigned bytesPerBlock = sizeof(thread_data) * threadsPerBlock;
-
+    
     cudaSimulationKernel<<<blocks, threadsPerBlock, bytesPerBlock>>>(inboxes, specification, operations, max_iterations);
 }
