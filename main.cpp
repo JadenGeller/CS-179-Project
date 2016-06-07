@@ -3,13 +3,6 @@
 #include <cmath>
 
 int main(int argc, char *argv[]) {
-    
-    // TODO: Experiment with other optimization problems.
-//    optimize(2, 2, {
-//        case 0: result = pow(args[0] - 1, 2) + pow(args[0] - args[1], 2);
-//        case 1: result = pow(args[0] - 3, 2) + pow(args[0] - args[1], 2);
-//    });
-    
 
     float optimized_arguments[2];
     float optimized_fitness[2];
