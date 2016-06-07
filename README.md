@@ -1,4 +1,4 @@
-# Parallel Multi-objective Optimization via Genetic Algorithm
+# Parallel Multi-Objective Optimization via Genetic Algorithm
 
 ## Abstract
 
