@@ -7,9 +7,14 @@
 // inspired by:
 // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.36.5013&rep=rep1&type=pdf
 
-#define func(function_index, value) case function_index: result = value; break;
-
+// Evaluates to the count of a statically allocated C array
 #define countof(arr) (sizeof(arr)/sizeof(arr[0]))
+
+// Used to specify a function to optimize. The first parameter is the index of the
+// function and the second is the result. There's an implict `args` array that
+// contains the arguments of the function, and it can be used within the computation
+// of the value.
+#define func(function_index, value) case function_index: result = value; break;
 
 #define optimize(iterations, arguments, fitness, functions) ({\
     using namespace genetic_algorithm;\
