@@ -10,16 +10,17 @@
 
 #define func(function_index, value) case function_index: result = value; break;
 
-#define ArgC(arr) (sizeof(arr)/sizeof(arr[0]))
+#define countof(arr) (sizeof(arr)/sizeof(arr[0]))
 
-#define optimize(arguments, FunC, functions) ({\
+#define optimize(arguments, fitness, functions) ({\
     using namespace genetic_algorithm;\
-    const size_t argument_count = ArgC(arguments);\
+    const size_t argument_count = countof(arguments);\
+    const size_t function_count = countof(fitness);\
     simulate(\
         /* results: */ arguments,\
         /* specifications: */ {\
             .max_iterations = 1000,\
-            .kingdom_count = FunC,\
+            .kingdom_count = function_count,\
             .island_count_per_kingdom = 10,\
             .island_population = 50\
         },\
@@ -56,6 +57,12 @@
             return scale * genome_x + (1 - scale) * genome_y;\
         }\
     );\
+    for (size_t f = 0; f < function_count; f++) {\
+        float result = -1;\
+        float *args = arguments;\
+        switch(f) functions\
+        fitness[f] = result;\
+    }\
     (void)0;\
 })
 
