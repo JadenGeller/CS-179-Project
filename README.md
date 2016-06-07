@@ -37,3 +37,7 @@ TODO (results too)
 ## Conclusion
 
 TODO
+
+## References
+
+[0] http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.36.5013&rep=rep1&type=pdf
