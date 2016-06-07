@@ -11,8 +11,8 @@ int main(int argc, char *argv[]) {
 //    });
     
 
-    
-    int x = optimize(2, 2, {
+    float optimal_arguments[2];
+    optimize(optimal_arguments, 2, {
         func(0, pow(args[0] - 1, 2) + pow(args[0] - args[1], 2));
         func(1, pow(args[0] - 3, 2) + pow(args[0] - args[1], 2));
     });

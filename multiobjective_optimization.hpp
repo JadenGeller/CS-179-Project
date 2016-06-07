@@ -10,11 +10,13 @@
 
 #define func(function_index, value) case function_index: result = value; break;
 
-#define optimize(ArgC, FunC, functions) ({\
+#define ArgC(arr) (sizeof(arr)/sizeof(arr[0]))
+
+#define optimize(arguments, FunC, functions) ({\
     using namespace genetic_algorithm;\
-    std::vector<float> arguments (ArgC);\
+    const size_t argument_count = ArgC(arguments);\
     simulate(\
-        /* results: */ &arguments[0],\
+        /* results: */ arguments,\
         /* specifications: */ {\
             .max_iterations = 1000,\
             .kingdom_count = FunC,\
@@ -25,9 +27,9 @@
             /* TODO: Generalize for any problem? */\
             return 20 * curand_uniform(rand_state) - 10;\
         },\
-        /* evaluate: */ [] __device__ (island_index index, genome_t test_genome, genome_t *competitor_genomes,curandState_t *rand_state) -> fitness_t {\
-            float args[ArgC];\
-            for (size_t i = 0; i < ArgC; i++) {\
+        /* evaluate: */ [argument_count] __device__ (island_index index, genome_t test_genome, genome_t *competitor_genomes,curandState_t *rand_state) -> fitness_t {\
+            float args[argument_count];\
+            for (size_t i = 0; i < argument_count; i++) {\
                 if (i == index.kingdom_index) {\
                     args[i] = test_genome;\
                 } else {\
@@ -54,6 +56,6 @@
             return scale * genome_x + (1 - scale) * genome_y;\
         }\
     );\
-    0;\
+    (void)0;\
 })
 
