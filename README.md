@@ -24,7 +24,7 @@ TODO
 
 TODO
 
-Blah<sup>[1](#footnote_1)</sup>
+Blah [[1]](#footnote_1)
 
 ### Template Metaprogramming
 
