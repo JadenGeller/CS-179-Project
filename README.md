@@ -34,6 +34,12 @@ Blah [[1]](#references)
 
 TODO
 
+## Future Directions
+
+TODO: Talk about focused on CUDA lambdas and parallelization
+TODO: Talk about mutation, cross, etc.
+TODO: Talk about constraints, maximization, etc.
+
 ## Performance Analysis
 
 ### Nash Equilibrium Computation
