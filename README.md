@@ -40,4 +40,4 @@ TODO
 
 ## References
 
-[0] http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=870339&tag=1
+[0] ["Nash Genetic Algorithms : examples and applications"](http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=870339)
