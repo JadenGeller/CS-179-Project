@@ -11,14 +11,14 @@
 
 #define countof(arr) (sizeof(arr)/sizeof(arr[0]))
 
-#define optimize(arguments, fitness, functions) ({\
+#define optimize(iterations, arguments, fitness, functions) ({\
     using namespace genetic_algorithm;\
     const size_t argument_count = countof(arguments);\
     const size_t function_count = countof(fitness);\
     simulate(\
         /* results: */ arguments,\
         /* specifications: */ {\
-            .max_iterations = 1000000,\
+            .max_iterations = iterations,\
             .kingdom_count = function_count,\
             .island_count_per_kingdom = 10,\
             .island_population = 50\
