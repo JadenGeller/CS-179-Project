@@ -16,7 +16,15 @@ TODO
 
 ## Challenges
 
+### Algorithmic Design
+
+TODO
+
 ### Experimental CUDA Device Lambda
+
+TODO
+
+### Template Metaprogramming
 
 TODO
 
