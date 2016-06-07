@@ -23,11 +23,11 @@ The Nash equilbiria of this strategic game is the equilibria where neither count
 
 Genetic algorithms are used to solve optimization problems using a process similar to natural selection. This class of algorithms generates and measures the fitness of massive populations across many iterations, so it’s a promising candidate for GPU acceleration since each gene's fitness can be computed on an individual thread.
 
-We will use the methods described in "Nash Genetic Algorithms" [[1]](#references) to compute Nash equilibrium via genetic algorithm, though we will modify it for better parallelization. Note that Nash equilibrium is computed by having each player optimizing their fitness function while the other parameters are fixed by the other players. 
+We will use the methods described in "Nash Genetic Algorithms" [[1]](#references) to compute Nash equilibrium via genetic algorithm, though we will modify it for better parallelization. Note that Nash equilibrium is computed by having each player optimizing their fitness function while the other parameters are fixed by the competing players. 
 
-In this project, the genetic representation of a given agent corresponds with a particular strategy.
+In this project, the genetic representation of a given agent corresponds with a particular strategy. Our implementation will isolate subpopulations within each multiprocessor “island” since this eliminates the slow process of inter-multiprocessor communication. Further, this allows us to minimize copy operations into slower memory. These “islands” will compete and evolve independently except for the occasional asynchronous “migration” of agent between island.
 
-Our implementation will isolate subpopulations within each multiprocessor “island” since this eliminates the slow process of inter-multiprocessor. Further, this allows us to minimize copy operations into slower memory. These “islands” will compete and evolve independently except for the occasional asynchronous “migration” of agent between island.
+The migrations will transfer the most fit individuals between islands in order to provide better competitors to compete against, therefore getting closer to the Nash equilbrium. Random mutations and crossing of genes will make sure we reach the global optimum rather than simply a local optimum.
 
 ## Previous Work
 
