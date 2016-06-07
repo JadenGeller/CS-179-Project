@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <functional>
-#include "genetic_algorithm.hpp"
 
 // inspired by:
 // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.36.5013&rep=rep1&type=pdf

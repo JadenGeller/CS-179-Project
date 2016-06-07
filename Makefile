@@ -40,19 +40,13 @@ TARGETS = main
 
 all: $(TARGETS)
 
-main: main.o multiobjective_optimization.o genetic_algorithm.o genetic_algorithm_cuda.o ta_utilities.o
+main: main.o multiobjective_optimization.o ta_utilities.o
 	$(CC) -o $@ $^ -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH) -fopenmp 	
 
 main.o: main.cpp
 	$(CC) -std=c++11 -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH) -o $@ -c $<
 
-multiobjective_optimization.o: multiobjective_optimization.cpp
-	$(CC) -std=c++11 -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH) -o $@ -c $<
-
-genetic_algorithm.o: genetic_algorithm.cpp
-	$(NVCC) -std=c++11 --expt-extended-lambda $(NVCCFLAGS) -O3 $(EXTRA_NVCCFLAGS) $(GENCODE_FLAGS) -I$(CUDA_INC_PATH) -x cu -o $@ -c $<
-
-genetic_algorithm_cuda.o: genetic_algorithm_cuda.cu
+multiobjective_optimization.o: multiobjective_optimization.cpp genetic_algorithm.hpp genetic_algorithm_cuda.cuh
 	$(NVCC) -std=c++11 --expt-extended-lambda $(NVCCFLAGS) -O3 $(EXTRA_NVCCFLAGS) $(GENCODE_FLAGS) -I$(CUDA_INC_PATH) -x cu -o $@ -c $<
 
 ta_utilities.o: ta_utilities.cpp

@@ -4,62 +4,55 @@
 #include <stddef.h>
 #include <cuda_runtime.h>
 #include <nvfunctional>
-#include <curand_kernel.h>
+#include <cstdio>
+#include "genetic_algorithm_cuda.cuh"
+
+/* Check errors on CUDA runtime functions */
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+    if (code != cudaSuccess)
+    {
+        fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+        exit(code);
+    }
+}
+
+#define CURAND_CALL(x) do { if((x)!=CURAND_STATUS_SUCCESS) { \
+printf("Error at %s:%d\n",__FILE__,__LINE__);\
+return EXIT_FAILURE;}} while(0)
+// See more at: http://docs.nvidia.com/cuda/curand/host-api-overview.html#generation-functions
+
+/* Check errors on CUDA kernel calls */
+void checkCUDAKernelError()
+{
+    cudaError_t err = cudaGetLastError();
+    if  (cudaSuccess != err){
+        fprintf(stderr, "Error %s\n", cudaGetErrorString(err));
+    }
+    
+}
 
 // TODO: Potentially make generic using template parameters. This might hurt performance though
 //       since we'd have to introduce another lambda.
 namespace genetic_algorithm {
-    // Floats are small enough such that they can be atomically moved between blocks without
-    // corruption. If we change this to a different size later on, we'll have to introduce
-    // synchronization.
-    typedef float fitness_t;
-    typedef float genome_t;
-    
-    // Stored in shared memory
-    struct thread_data {
-        genome_t genome;
-        fitness_t fitness;
-        curandState rand_state;
-    };
-    
-    // Stored on stack
-    struct island_index {
-        size_t kingdom_index;
-        size_t cross_section_index;
-    };
-    
-    struct specification_t {
-        size_t kingdom_count;
-        size_t island_count_per_kingdom;
-        size_t island_population;
-    };
-    
-    struct operations_t {
-        // Return a random genome.
-        // GPU TODO: How will we get entropy from the GPU? Will it have to be passed in,
-        //           or can we generate it dynamically.
-        nvstd::function<genome_t(island_index index, curandState_t *rand_state)> spawn;
+    template <typename Spawn, typename Evaluate, typename Mutate, typename Cross>
+    static void simulate(specification_t specification, size_t max_iterations, float *results, Spawn spawn, Evaluate evaluate, Mutate mutate, Cross cross) {
+        unsigned blocks = specification.kingdom_count * specification.island_count_per_kingdom;
+        unsigned threadsPerBlock = specification.island_population;
         
-        // Evaluate the `test_genome` returning its fitness.
-        // Note that `competitor_genomes` is an array of the best genomes in each kingdom,
-        // ordered by kingdom, fomr `test_genomes` cross section of the world.
-        nvstd::function<fitness_t(island_index index, genome_t test_genome, genome_t *competitor_genomes, curandState_t *rand_state)> evaluate;
+        genome_t * dev_inboxes;
+        gpuErrchk(cudaMalloc((void **)&dev_inboxes, blocks * sizeof(genome_t)));
         
-        // DECIDE: Should we allow the caller to determine whether or not its mutated like this?
-        // Mutate a genome or leave it alone.
-        nvstd::function<void(island_index index, size_t genome_index, genome_t *genome, curandState_t *rand_state)> mutate;
+        cudaCallSimulation(blocks, threadsPerBlock, dev_inboxes, specification, max_iterations, spawn, evaluate, mutate, cross);
+        checkCUDAKernelError();
         
-        // DECIDE: Any reason to share the genome indices here? It seems inconsistent to not.
-        // Cross two genomes.
-        nvstd::function<genome_t(island_index index, genome_t genome_x, genome_t genome_y, curandState_t *rand_state)> cross;
-    };
-    
-    class simulation {
-    private:
-        operations_t operations;
-        
-    public:
-        simulation(operations_t operations): operations(operations) { }
-        void run(specification_t specification, size_t max_iterations, float *results);
-    };
+        gpuErrchk(cudaMemcpy(
+                             results,
+                             dev_inboxes,
+                             specification.kingdom_count * sizeof(genome_t),
+                             cudaMemcpyDeviceToHost
+                             ));
+        cudaFree(dev_inboxes);
+    }
 };
