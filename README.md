@@ -40,4 +40,4 @@ TODO
 
 ## References
 
-[0] http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.36.5013&rep=rep1&type=pdf
+[0] http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=870339&tag=1
