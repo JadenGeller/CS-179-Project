@@ -8,10 +8,7 @@
 // inspired by:
 // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.36.5013&rep=rep1&type=pdf
 
-//struct specification {
-//    size_t argument_count;
-//    size_t function_count;
-//};
+#define func(function_index, value) case function_index: result = value; break;
 
 #define optimize(ArgC, FunC, functions) ({\
     using namespace genetic_algorithm;\
