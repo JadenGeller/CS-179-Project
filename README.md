@@ -118,14 +118,20 @@ The `nvstd::function` type conveniently provided documentation and type-saftey r
 
 ```c
 template <typename Spawn, typename Evaluate, typename Mutate, typename Cross>
-static void simulate(float *results, specification_t specification, Spawn spawn, Evaluate evaluate, Mutate mutate, Crosscross) { ... }
+static void simulate(float *results, specification_t specification, Spawn spawn, Evaluate evaluate, Mutate mutate, Cross cross) { ... }
 ```
 
 ### Template Metaprogramming
 
-As mentioned, templates had to be used to represent the types of the lambda.
+As mentioned, templates had to be used to represent the types of the lambda. If you are not familiar with templates in C++, they allow for the parameterization of a class or function. Unfortunately, this requires that *implementation* of the function be declared in the *header* file so that the code can be specialized. As such, much of the codebase is written in header files rather than a more clean header/implementation split. Further, this means that any codebase that uses the API much be compiled with NVVC; uses of the API don't simply need to link with the API, but actually must include an compile the API.
 
-TODO (header files)
+In faced quite a few *compiler* **crashes** while building the API. Since the lambda feature is experimental, there are currently bugs that cause compiler assertion failures in undocumented situations. The compiler does not report what went wrong, so it was quite a challenge to debug what caused the issue. This involved reducing the issue to the smallest base case where I observed this behavior and trying to find a workaround. I probably had to work through over a dozen major compiler crashes to get my code to compile over the course of the project, and that is in addition to normal type-error debugging.
+
+### Macros
+
+One limitation I discovered is that CUDA device lambdas cannot capture other device lambdas. This means that though multi-objective optimization can be done with the genetic algorithm framework, a multi-objective optimization framework that uses lambdas to represent the functions to be optimized cannot be built. I spent many hours trying to find a work around, even attempting to define the functions to be optimized in global functions and pass them as function pointers, but each approach I tried failed, usually due to undocumented limitations of the feature or crashes that exist in the current experimental implementation of device lambdas, expecially when used in conjunction with templates.
+
+I finally worked around this issue by using macros. Since the multi-objective optimization project can be specified manually with the genetic algorithm framework, a macro could transform a problem into the required representation. As such, the `optimize` function was represented as a macro. Behind the scence, it takes the function representation that the developer provides and pastes it into a switch statement that switches on the index of the function to be executed. The `func` macro simply encodes a given case of the switch statement, setting a result local variable to the value and breaking. While this is not an ideal API, it does provide an easy to use, abstracted way to represent Nash equilibrium problems.
 
 ## Future Directions
 
