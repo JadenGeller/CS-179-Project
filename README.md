@@ -43,7 +43,9 @@ Researchers have studied the ability of coevolutionary genetic algorithms to evo
 
 ### Genetic Algorithm
 
-TODO
+The genetic algorithm framework is implemented using CUDA device lambdas so any arbitrary genetic algorithm can be encoded in the framework without having to write a separate kernel. The framework supports specification of `spawn`, `evaluate`, `mutate`, and `cross` functions to specify the algorithm. Each function takes in a `curandState_t` that has been seeded specifically for that thread so that randomized behavior is easily implemented.
+
+The `simulate` function also takes in a specification parameter that indicates how the algorithm should run, including the number of iterations. Further, the developer can specify the `kingdom_count`, the `island_count_per_kingdom`, and the `island_population`. These parameters require some explaning. The island model typically involves using a separate block for independent evolution of each population. We similarly regard each block as an island, but extend to model to include the concept of a "kingdom". A kingdom is an alliance of islands that is acting to achieve the same goal. In our implementation, each kingdom works together to optimize a separate criteria of the nash equilbrium. Each subpopulation within the kingdom simplify ensures genetic diversity is maintained. Migration occurs interkingdom in a ring between islands in that kingdom and intrakingdom in a ring between islands of the same cross-section of different kingdoms.
 
 ### Multi-objective Optimization
 
@@ -57,16 +59,18 @@ TODO
 
 ### Experimental CUDA Device Lambda
 
-TODO
+TODO (macros, lack of objects, lack of structs, lack of types)
 
 Blah [[1]](#references)
 
 ### Template Metaprogramming
 
-TODO
+TODO (header files)
 
 ## Future Directions
 
+TODO: Talk about generalizing more
+TODO: Talk about stopping conditions
 TODO: Talk about focused on CUDA lambdas and parallelization
 TODO: Talk about mutation, cross, etc.
 TODO: Talk about constraints, maximization, etc.
