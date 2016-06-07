@@ -2,11 +2,22 @@
 
 ## Abstract
 
-I built a parallel genetic algorithm framework that resembles a modified version of the island model. The framework is built atop CUDA 7.5 and utilizes the experimental device lambda feature. Using this framework, I built a multiobjective optimization solver and determined its feasibility in Nash equilibrium computation.
+I implemented a massively parallel genetic algorithm framework that resembles a modified version of the island model. The framework is built atop CUDA 7.5 and utilizes the experimental device lambda feature. I used this framework to compute Nash equilibrium by coevolving game-playing strategies between interacting agents.
 
 ## Background
 
-TODO
+### Game Theroy
+
+Game theory studies the interactions of rational decision-makers. We can simulate various games using evolutionary strategies to determine the equilibrium behavior, or Nash equilibrium, of the players.
+
+Consider the game following game in which two countries choose a tarrif rate to impose on imports. Each function `u1` and `u2` represents the payoff of a given country as a function of the rates `t1` and `t2` imposed.
+
+```
+u1(t1, t2) = -t1(t1 - t2 - 2)
+u2(t1, t2) = -t2(t2 - t1 - 8)
+```
+
+The Nash equilbiria of this strategic game is the equilibria where neither country would increase their payoff by increasing their tariff. In this particular game, analytical computations calculate that the unique Nash equilbrium is `(t1*, t2*) = (4, 6)`. We will determine whether similiar results can be achieved using our genetic algorithm framework.
 
 ## Installation and Usage
 
