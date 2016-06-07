@@ -2,7 +2,7 @@
 
 ## Abstract
 
-I implemented a massively parallel genetic algorithm framework that resembles a modified version of the island model. The framework is built atop CUDA 7.5 and utilizes the experimental device lambda feature. I used this framework to compute Nash equilibrium by coevolving game-playing strategies between interacting agents.
+I implemented a massively parallel genetic algorithm framework that resembles a modified version of the island model. The framework is built atop CUDA 7.5 and utilizes the experimental device lambda feature. In implementing this, I discovered undocumented current limitations of device lambdas and found novel workarounds to express the API. I used this framework to compute Nash equilibrium by coevolving game-playing strategies between interacting agents.
 
 ## Background and Design
 
@@ -70,14 +70,14 @@ Once run, this will call the kernel and wait for the specified number of generat
 
 ## Results
 
-As previously discussed, the analytical solution to this problem is `(4, 6)`. Let's compare that to the CPU and GPU computed result. We will run both the CPU and GPU code with `island_count_per_kingdom = 10`, `island_population = 500`, and one thousand iterations.
+As previously discussed, the analytical solution to this problem is `(4, 6)`. Let's compare that to the CPU and GPU computed result. We will run both the CPU and GPU code with `island_count_per_kingdom = 10`, `island_population = 500`, and *one thousand iterations*.
 
 | Hardware | Optimized Arguments  | Optimized Fitness        | Runtime  |
 |----------|----------------------|--------------------------|----------|
 | CPU      | (3.998751, 6.000210) | {-16.000841, -35.992508} | 2,540 ms |
 | GPU      | (5.818570, 8.769202) | {-28.805599, -44.278927} |    83 ms |
 
-Clearly the GPU run much more quickly but the produced less accurate results. We will increase the number of iterations to one-hundred thousand iterations and compare again.
+Clearly the GPU run much more quickly but the produced less accurate results. We will increase the number of iterations to *one-hundred thousand iterations* and compare again.
 
 | Hardware | Optimized Arguments  | Optimized Fitness        | Runtime    |
 |----------|----------------------|--------------------------|------------|
@@ -92,17 +92,38 @@ It's important to recognize the much lower accuracy of the GPU output compared t
 
 ## Challenges
 
-### Algorithmic Design
-
-TODO
-
 ### Experimental CUDA Device Lambda
 
-TODO (macros, lack of objects, lack of structs, lack of types)
+CUDA device lambdas were introduced in CUDA 7.5 as an experimental feature. As such, they are very poorly documented and have significant limitations that are often only discovered after implementation. Working through these issues was a very time-consuming part of the project.
 
-Blah [[1]](#references)
+CUDA defines a `nvstd::function` wrapper for resprenting the types of lambdas. Previously, the codebase followed a much more object-oriented model. A genetical algorithm simulation object was initialized using a struct containing the operations used in the algorithm:
+
+```c
+struct operations_t {
+    // Return a random genome.
+    nvstd::function<genome_t(island_index index, curandState_t *rand_state)> spawn;
+    
+    // Evaluate the `test_genome` returning its fitness.
+    nvstd::function<fitness_t(island_index index, genome_t test_genome, genome_t *competitor_genomes, curandState_t *rand_state)> evaluate;
+    
+    // Mutate a genome or leave it alone.
+    nvstd::function<void(island_index index, size_t genome_index, genome_t *genome, curandState_t *rand_state)> mutate;
+    
+    // Cross two genomes.
+    nvstd::function<genome_t(island_index index, genome_t genome_x, genome_t genome_y, curandState_t *rand_state)> cross;
+};
+```
+
+The `nvstd::function` type conveniently provided documentation and type-saftey regarding the types of the lambdas. After debugging memory issues for many hours, it was discovered that `nvstd::function` does NOT support device lambdas, only host lambdas, and this is not documented anywhere. Further, you may NOT store a device lambda in a struct as pass that as a function argument; you must DIRECTLY pass the lambda as a function argument or CUDA will not copy the lambda onto the device memory. These issues took ages to debug and significantly decreased the friendliness of the API. Now, the API is represented as a single top-level function that takes in all operations as an arguments. Further, the type of the arguments can NOT be represented, and template parameters must be used. This means that type errors made at the call-site propogate into the implementation in a way that is very difficult to debug. Unfortunately, this is the way it must be implemented though with the way CUDA device lambdas currently work. Now, the function signature is as follows:
+
+```c
+template <typename Spawn, typename Evaluate, typename Mutate, typename Cross>
+static void simulate(float *results, specification_t specification, Spawn spawn, Evaluate evaluate, Mutate mutate, Crosscross) { ... }
+```
 
 ### Template Metaprogramming
+
+As mentioned, templates had to be used to represent the types of the lambda.
 
 TODO (header files)
 
