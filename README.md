@@ -40,6 +40,10 @@ TODO: Talk about focused on CUDA lambdas and parallelization
 TODO: Talk about mutation, cross, etc.
 TODO: Talk about constraints, maximization, etc.
 
+## Results
+
+### Hypothesis Explaning Differences Between CPU and GPU Output
+
 ## Performance Analysis
 
 ### Nash Equilibrium Computation
