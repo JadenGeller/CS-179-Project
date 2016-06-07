@@ -8,6 +8,8 @@ I built a parallel genetic algorithm framework that resembles a modified version
 
 TODO
 
+## Installation and Usage
+
 ## Design
 
 ### Genetic Algorithm
@@ -42,7 +44,7 @@ TODO: Talk about constraints, maximization, etc.
 
 ## Results
 
-### Hypothesis Explaning Differences Between CPU and GPU Output
+### Differences Between CPU and GPU Output
 
 ## Performance Analysis
 
