@@ -44,11 +44,7 @@ namespace genetic_algorithm {
         island_index index;
         index.kingdom_index = blockIdx.x / specification.island_count_per_kingdom;
         index.cross_section_index = blockIdx.x % specification.island_count_per_kingdom;
-        //    island_index index = (island_index){
-        //        .kingdom_index = blockIdx.x / specification.island_count_per_kingdom,
-        //        .cross_section_index = blockIdx.x % specification.island_count_per_kingdom
-        //    };
-        
+
         // Seed the random number generator
         // Note we can simply see with the thread index since we don't care to have random
         // behavior between multiple invocations, only between threads
@@ -60,9 +56,9 @@ namespace genetic_algorithm {
         for (size_t i = 0; i < specification.max_iterations; i++) {
             // Evaluate individual
             thread_memory->fitness = evaluate(index, thread_memory->genome, mailboxes(index.cross_section_index), &thread_memory->rand_state);
-            
+
             // Perform reduction
-            for (size_t bound = blockDim.x >> 1; bound > 0; bound >>= 1) {
+            for (size_t bound = blockDim.x >> 1; threadIdx.x < bound; bound >>= 1) {
                 thread_data *other_memory = thread_memory + bound;
                 syncthreads();
                 
@@ -86,12 +82,12 @@ namespace genetic_algorithm {
                 // Outward
                 {
                     // Send updated elite genome to next island in kingdom
-                    //                island_index next_index = ((island_index){
-                    //                    .kingdom_index = index.kingdom_index,
-                    //                    .cross_section_index = (index.cross_section_index + 1) % specification.island_count_per_kingdom
-                    //                });
+                    island_index next_index;
+                    next_index.kingdom_index = index.kingdom_index;
+                    next_index.cross_section_index = (index.cross_section_index + 1) % specification.island_count_per_kingdom;
+
                     // Note that this thread's genome in shared memory is the best since we reduced left
-                    //                *inbox(next_index) = thread_memory->genome;
+                    *inbox(next_index) = thread_memory->genome;
                 }
                 
                 // Inward
