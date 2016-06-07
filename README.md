@@ -43,13 +43,52 @@ Researchers have studied the ability of coevolutionary genetic algorithms to evo
 
 ### Genetic Algorithm
 
-The genetic algorithm framework is implemented using CUDA device lambdas so any arbitrary genetic algorithm can be encoded in the framework without having to write a separate kernel. The framework supports specification of `spawn`, `evaluate`, `mutate`, and `cross` functions to specify the algorithm. Each function takes in a `curandState_t` that has been seeded specifically for that thread so that randomized behavior is easily implemented.
+The genetic algorithm framework is implemented using CUDA device lambdas so any arbitrary genetic algorithm can be encoded in the framework without having to write a separate kernel. The framework supports specification of `spawn`, `evaluate`, `mutate`, and `cross` functions to specify the algorithm. Each function takes in a `curandState_t` that has been seeded specifically for that thread so that randomized behavior is easily implemented. Note that we seed each thread with its thread id. It is sufficient to do this since we only care that each thread has independent random numbers, but we do not care if the program acts randomly between invocations.
 
-The `simulate` function also takes in a specification parameter that indicates how the algorithm should run, including the number of iterations. Further, the developer can specify the `kingdom_count`, the `island_count_per_kingdom`, and the `island_population`. These parameters require some explaning. The island model typically involves using a separate block for independent evolution of each population. We similarly regard each block as an island, but extend to model to include the concept of a "kingdom". A kingdom is an alliance of islands that is acting to achieve the same goal. In our implementation, each kingdom works together to optimize a separate criteria of the nash equilbrium. Each subpopulation within the kingdom simplify ensures genetic diversity is maintained. Migration occurs interkingdom in a ring between islands in that kingdom and intrakingdom in a ring between islands of the same cross-section of different kingdoms.
+The `simulate` function also takes in a specification parameter that indicates how the algorithm should run, including the number of iterations. Further, the developer can specify the `kingdom_count`, the `island_count_per_kingdom`, and the `island_population`. These parameters require some explaning. The island model typically involves using a separate block for independent evolution of each population. We similarly regard each block as an island, but extend to model to include the concept of a "kingdom". A kingdom is an alliance of islands that is acting to achieve the same goal. In our implementation, each kingdom works together to optimize a separate criteria of the nash equilbrium. Each subpopulation within the kingdom simplify ensures genetic diversity is maintained. Migration occurs interkingdom in a ring between islands in that kingdom and intrakingdom in a ring between islands of the same cross-section of different kingdoms. Note that since our genome is represent as a floating point number, we can atomically mutate it in global memory and thus can asynchronously migrate genomes between islands without corruption.
+
+Our genetic algorithm framework does not include a `selection` operator as is typical. This is because we take advantage of the parrallel nature to implement a binary reduction that computes the individual with the greatest fitness. During the reduction, we compare two genes and elimite the less fit one and replace it with a copy of the more fit one. In the process, it wipes out individuals with the worst fitness---approximately 50% of the population depending on the distribution of individuals within the islands. Though it seems odd to elimiate individuals of the population based partially on placement, it allows us to optimize the reduction to perform very quickly.
+
+After evaluation, selection, and migration, we cross and mutate the individuals before repeating the process. This evolution loop will continue until we reach the desired number of iterations and then will stop. The kernel will finish once all populations have been evolved to the desired number of iterations. Note that there is no syncronization between each island by design as to ensure speedy performance.
 
 ### Multi-objective Optimization
 
-TODO
+The multi-objective optimization layer is written on top of the genetic algorithm framework. For reasons we will discuss later, it's API is exposed as a macro with a special syntax for specifying the optimization problem. Specifically, it is implemented to compute the Nash equilbirum of a set of `N` equations each with `N` arguments. Each player's controls the `i`th argument and uses the `i`th equation as its fitness function. Here is the encoding of the tarrif problem described above:
+
+```c
+    float optimized_arguments[2];
+    float optimized_fitness[2];
+    optimize(10000000, optimized_arguments, optimized_fitness, {
+        func(0, args[0] * (args[0] - args[1] - 2));
+        func(1, args[1] * (args[1] - args[0] - 8));
+    });
+```
+
+The optimize macro takes a few parameters. First, the number of generations to evolve the population before returning the result. Next, statically allocated arrays that will, after running, contain the optimized arguments and the resulting optimized fitnesses. Note that it determines the number of parameters from the length of these arrays, and it is undefined behavior to have a different number of functions than should be expected by the length of the arrays. Finally, the last argument is a domain-specific language that describes each function. The syntax must use the `func` macro, which takes the function index as the first argument and its defintion as the second argument. Note that the second argument may use the implicitly defined `args` array to obtain the arguments of the function. We will discuss why this particular syntax was used later in the report.
+
+Once run, this will call the kernel and wait for the specified number of generations to complete before copying the result into the statically allocated arrays.
+
+## Results
+
+As previously discussed, the analytical solution to this problem is `(4, 6)`. Let's compare that to the CPU and GPU computed result. We will run both the CPU and GPU code with `island_count_per_kingdom = 10`, `island_population = 500`, and one thousand iterations.
+
+| Hardware | Optimized Arguments  | Optimized Fitness        | Runtime  |
+|----------|----------------------|--------------------------|----------|
+| CPU      | (3.998751, 6.000210) | {-16.000841, -35.992508} | 2,540 ms |
+| GPU      | (5.818570, 8.769202) | {-28.805599, -44.278927} |    83 ms |
+
+Clearly the GPU run much more quickly but the produced less accurate results. We will increase the number of iterations to one-hundred thousand iterations and compare again.
+
+| Hardware | Optimized Arguments  | Optimized Fitness        | Runtime    |
+|----------|----------------------|--------------------------|------------|
+| CPU      | (3.999207, 5.998609) | {-15.994436, -35.995243} | 249,000 ms |
+| GPU      | (5.045824, 6.620116) | {-18.035248, -42.538933} |     737 ms |
+
+With an increased number of iterations, we see that the GPU result becomes much closer to the analytical solution and still runs very, very quickly---much faster than the CPU runtime with 100x less iterations. Also, it is clear that the CPU algorithm becomes infeasible to run as the number of generations increase, a compelling argument for GPU parallelization of this sort of problem. Since genetic algorithms require simulating many individuals at once, all doing the same thing, we see immense speedups between the CPU and GPU version.
+
+### Accuracy
+
+It's important to recognize the much lower accuracy of the GPU output compared to the CPU output. This is something that is not fully understood, and would benefit from greater research. One potential contributing factor is quality of random number generation. The CUDA documentation warns that generating random numbers with separate `curandState_t`s on each thread could potentially result in correlated random numbers. It is unclear if that might be the cause, but that is definitely something that ought to be looked into. If this were to be solved, the GPU impelementation would be clearly preferable for any sort of parallelizable genetic algorithm.
 
 ## Challenges
 
@@ -69,17 +108,15 @@ TODO (header files)
 
 ## Future Directions
 
+TODO: Talk about seeding
+TODO: Talk about selection
 TODO: Talk about generalizing more
-TODO: Talk about stopping conditions
+TODO: Talk about stopping conditions and making sure an island doesn't finish way before the others
 TODO: Talk about focused on CUDA lambdas and parallelization
 TODO: Talk about mutation, cross, etc.
 TODO: Talk about constraints, maximization, etc.
 
 ## Installation and Usage
-
-## Results
-
-### Differences Between CPU and GPU Output
 
 ## Performance Analysis
 
