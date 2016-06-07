@@ -52,5 +52,5 @@ TODO
 
 ## References
 
-1. ["Nash Genetic Algorithms : examples and applications"](http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=870339)
-2. ["Examples and exercises on finding Nash equilibria of two-player games using best response functions"](https://www.economics.utoronto.ca/osborne/2x3/tutorial/NEIEX.HTM)
+1. [Nash Genetic Algorithms : examples and applications](http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=870339)
+2. [Examples and exercises on finding Nash equilibria of two-player games using best response functions](https://www.economics.utoronto.ca/osborne/2x3/tutorial/NEIEX.HTM)
