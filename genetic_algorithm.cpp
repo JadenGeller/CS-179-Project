@@ -60,8 +60,6 @@ void checkCUDAKernelError()
 }
 
 namespace genetic_algorithm {
-    // GPU TODO: For now, we'll just return a pointer to the global memory (w/ all of the best values)
-    //           after it runs. We should figure out a better alternative to this on the GPU.
     void simulation::run(specification_t specification, size_t max_iterations, float * const results) {
         unsigned blocks = specification.kingdom_count * specification.island_count_per_kingdom;
         unsigned threadsPerBlock = specification.island_population;
