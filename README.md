@@ -70,6 +70,8 @@ Once run, this will call the kernel and wait for the specified number of generat
 
 ## Results
 
+The `main.c` file encodes the problem to be optimized. The program can be compiled with the `make` command and run with `./main`. If it is desired that the program is timed, simply run `time ./main`.
+
 As previously discussed, the analytical solution to this problem is `(4, 6)`. Let's compare that to the CPU and GPU computed result. We will run both the CPU and GPU code with `island_count_per_kingdom = 10`, `island_population = 500`, and *one thousand iterations*.
 
 | Hardware | Optimized Arguments  | Optimized Fitness        | Runtime  |
