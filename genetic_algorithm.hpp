@@ -3,7 +3,6 @@
 #include <vector>
 #include <stddef.h>
 #include <cuda_runtime.h>
-#include <nvfunctional>
 #include <cstdio>
 #include "genetic_algorithm_cuda.cuh"
 

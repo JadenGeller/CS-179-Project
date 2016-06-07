@@ -1,40 +1,62 @@
 #pragma once
 
 #include <vector>
-#include <functional>
+#include <nvfunctional>
+#include <cstring>
+#include "genetic_algorithm.hpp"
 
 // inspired by:
 // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.36.5013&rep=rep1&type=pdf
-namespace multiobjective_optimization {
-    
-    // TODO: Also support maximization
-    //    enum optimization_type {
-    //        minimize,
-    //        maximize
-    //    };
-    
-    // TODO: Maybe make a general optimzation type
-    //    template <typename X, typename F>
-    //    class optimzation {
-    //        private:
-    //            virtual bool is_increasing(X from_value, X to_value) {
-    //                printf("Abstract class!\n");
-    //                exit(1);
-    //            }
-    //        public:
-    //            // TODO: Potentially support constraints
-    //
-    //            F apply(X argument) {
-    //
-    //            }
-    //    }
-    
-    class mathematical_optimization/*: public optimization*/ {
-    public:
-        size_t argument_count; // TODO: Make read only?
-        std::vector<std::function<float(float *)>> functions;
-        
-        void compute(float *optimized_arguments, float *optimized_fitness);
-    };
-};
+
+//struct specification {
+//    size_t argument_count;
+//    size_t function_count;
+//};
+
+#define optimize(ArgC, FunC, functions) ({\
+    using namespace genetic_algorithm;\
+    std::vector<float> arguments (ArgC);\
+    simulate(\
+        /* results: */ &arguments[0],\
+        /* specifications: */ {\
+            .max_iterations = 1000,\
+            .kingdom_count = FunC,\
+            .island_count_per_kingdom = 10,\
+            .island_population = 50\
+        },\
+        /* spawn: */ [] __device__ (island_index index, curandState_t *rand_state) -> fitness_t {\
+            /* TODO: Generalize for any problem? */\
+            return 20 * curand_uniform(rand_state) - 10;\
+        },\
+        /* evaluate: */ [] __device__ (island_index index, genome_t test_genome, genome_t *competitor_genomes,curandState_t *rand_state) -> fitness_t {\
+            float args[ArgC];\
+            for (size_t i = 0; i < ArgC; i++) {\
+                if (i == index.kingdom_index) {\
+                    args[i] = test_genome;\
+                } else {\
+                    args[i] = competitor_genomes[i];\
+                }\
+            }\
+            float result = -1;\
+            switch(index.kingdom_index) functions\
+            return result;\
+        },\
+        /* mutate: */ [] __device__ (island_index index, size_t genome_index, genome_t *genome, curandState_t *rand_state) {\
+            if (genome_index == 0) return; /* Leave the elite alone. */\
+            if (curand_uniform(rand_state) > 0.5) {\
+                /* TODO: This is niave. Maybe use distance dependent mutation? */\
+                *genome *= -1.0 / (curand_uniform(rand_state) - 1.1);\
+                *genome += -1.0 / (curand_uniform(rand_state) - 1.1);\
+                *genome -= -1.0 / (curand_uniform(rand_state) - 1.1);\
+            }\
+        },\
+        /* cross: */ [] __device__ (island_index index, genome_t genome_x, genome_t genome_y, curandState_t *rand_state) -> genome_t {\
+            /* GPU TODO: Can we make this more parallel? */\
+            float scale = curand_uniform(rand_state);\
+            /* TODO: This is niave. Does it really represent a good cross of genes? */\
+            return scale * genome_x + (1 - scale) * genome_y;\
+        }\
+    );\
+    0;\
+})
 
