@@ -37,14 +37,14 @@ void checkCUDAKernelError()
 //       since we'd have to introduce another lambda.
 namespace genetic_algorithm {
     template <typename Spawn, typename Evaluate, typename Mutate, typename Cross>
-    static void simulate(specification_t specification, size_t max_iterations, float *results, Spawn spawn, Evaluate evaluate, Mutate mutate, Cross cross) {
+    static void simulate(float *results, specification_t specification, Spawn spawn, Evaluate evaluate, Mutate mutate, Cross cross) {
         unsigned blocks = specification.kingdom_count * specification.island_count_per_kingdom;
         unsigned threadsPerBlock = specification.island_population;
         
         genome_t * dev_inboxes;
         gpuErrchk(cudaMalloc((void **)&dev_inboxes, blocks * sizeof(genome_t)));
         
-        cudaCallSimulation(blocks, threadsPerBlock, dev_inboxes, specification, max_iterations, spawn, evaluate, mutate, cross);
+        cudaCallSimulation(blocks, threadsPerBlock, dev_inboxes, specification, spawn, evaluate, mutate, cross);
         checkCUDAKernelError();
         
         gpuErrchk(cudaMemcpy(

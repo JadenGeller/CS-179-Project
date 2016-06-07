@@ -53,12 +53,12 @@ namespace multiobjective_optimization {
          */
         
         
-        simulate({
+        simulate(optimized_arguments, {
+            .max_iterations = 1000,
             .kingdom_count = functions.size(),
             .island_count_per_kingdom = 10,
-            .island_population = 50,
+            .island_population = 50
         },
-        1000, optimized_arguments,
                  [] __device__ (island_index index, curandState_t *rand_state) -> fitness_t {
                      // TODO: Generalize for any problem?
                      return 20 * curand_uniform(rand_state) - 10;

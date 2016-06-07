@@ -29,6 +29,7 @@ namespace genetic_algorithm {
     };
     
     struct specification_t {
+        size_t max_iterations;
         size_t kingdom_count;
         size_t island_count_per_kingdom;
         size_t island_population;
@@ -36,7 +37,7 @@ namespace genetic_algorithm {
     
     template <typename Spawn, typename Evaluate, typename Mutate, typename Cross>
     __global__
-    void cudaSimulationKernel(genome_t *inboxes, specification_t specification, size_t max_iterations, Spawn spawn, Evaluate evaluate, Mutate mutate, Cross cross) {
+    void cudaSimulationKernel(genome_t *inboxes, specification_t specification, Spawn spawn, Evaluate evaluate, Mutate mutate, Cross cross) {
         extern __shared__ thread_data shared_memory[];
         thread_data *thread_memory = shared_memory + threadIdx.x;
         
@@ -59,7 +60,7 @@ namespace genetic_algorithm {
         //    thread_memory->genome = operations.spawn(index, &thread_memory->rand_state);
         
         /*
-        for (size_t i = 0; i < max_iterations; i++) {
+        for (size_t i = 0; i < specification.max_iterations; i++) {
             // Evaluate individual
             thread_memory->fitness = operations.evaluate(index, thread_memory->genome, mailboxes(index.cross_section_index), &thread_memory->rand_state);
             
@@ -123,10 +124,10 @@ namespace genetic_algorithm {
     }
     
     template <typename Spawn, typename Evaluate, typename Mutate, typename Cross>
-    void cudaCallSimulation(const size_t blocks, const size_t threadsPerBlock, genome_t * const inboxes, specification_t specification, size_t max_iterations, Spawn spawn, Evaluate evaluate, Mutate mutate, Cross cross) {
+    void cudaCallSimulation(const size_t blocks, const size_t threadsPerBlock, genome_t * const inboxes, specification_t specification, Spawn spawn, Evaluate evaluate, Mutate mutate, Cross cross) {
         unsigned bytesPerBlock = sizeof(thread_data) * threadsPerBlock;
         
-        cudaSimulationKernel<<<blocks, threadsPerBlock, bytesPerBlock>>>(inboxes, specification, max_iterations, spawn, evaluate, mutate, cross);
+        cudaSimulationKernel<<<blocks, threadsPerBlock, bytesPerBlock>>>(inboxes, specification, spawn, evaluate, mutate, cross);
     }
 }
 
