@@ -55,14 +55,11 @@ namespace genetic_algorithm {
         curand_init(blockIdx.x * blockDim.x + threadIdx.x, 1, 0, &thread_memory->rand_state);
         
         // Initialize individual
-        //    auto x = operations.spawn;
-            printf("%f\n", spawn(index, &thread_memory->rand_state));
-        //    thread_memory->genome = operations.spawn(index, &thread_memory->rand_state);
+        thread_memory->genome = spawn(index, &thread_memory->rand_state);
         
-        /*
         for (size_t i = 0; i < specification.max_iterations; i++) {
             // Evaluate individual
-            thread_memory->fitness = operations.evaluate(index, thread_memory->genome, mailboxes(index.cross_section_index), &thread_memory->rand_state);
+            thread_memory->fitness = evaluate(index, thread_memory->genome, mailboxes(index.cross_section_index), &thread_memory->rand_state);
             
             // Perform reduction
             for (size_t bound = blockDim.x >> 1; bound > 0; bound >>= 1) {
@@ -108,19 +105,18 @@ namespace genetic_algorithm {
             }
             
             // Perform mutation
-            operations.mutate(index, threadIdx.x, &thread_memory->genome, &thread_memory->rand_state);
+            mutate(index, threadIdx.x, &thread_memory->genome, &thread_memory->rand_state);
             
             // Perform crosses
             if (threadIdx.x % 2 == 1) {
-                shared_memory[threadIdx.x].genome = operations.cross(
-                                                                     index,
-                                                                     shared_memory[threadIdx.x - 1].genome,
-                                                                     shared_memory[threadIdx.x].genome,
-                                                                     &thread_memory->rand_state
-                                                                     );
+                shared_memory[threadIdx.x].genome = cross(
+                    index,
+                    shared_memory[threadIdx.x - 1].genome,
+                    shared_memory[threadIdx.x].genome,
+                    &thread_memory->rand_state
+                );
             }
         }
-         */
     }
     
     template <typename Spawn, typename Evaluate, typename Mutate, typename Cross>
