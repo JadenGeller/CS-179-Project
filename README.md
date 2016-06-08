@@ -141,7 +141,7 @@ This project focused primarily on the implementation of a fast parallelized gene
 
 ## Conclusion
 
-Genetic algorithms are an appealing candidate for parallelization. CUDA device lambdas in theory provide a nice abstraction that allows for implementation of custom algorithms without reimplementation of the kernel, but in practice are currently much too limited for a easily usable API. I implemented a basic genetic algorithm framework in CUDA and used to to build another abstract, a multi-objective optimization framework, on top. In building this, I discovered many limitations of CUDA device lambdas and documented them. I confirmed that the island model is a very fast way to perform genetic algorithms on the GPU, and I examined future directions of research that ought to be explored before a large-scale genetic algorithm framework can be implemented.
+Genetic algorithms are an appealing candidate for parallelization. CUDA device lambdas in theory provide a nice abstraction that allows for implementation of custom algorithms without reimplementation of the kernel, but in practice are currently much too limited for a easily usable API. I implemented a basic genetic algorithm framework in CUDA and used to to build another abstract, a multi-objective optimization framework, on top. In building this, I discovered many limitations of CUDA device lambdas and documented them. I confirmed that the island model is a very fast way to perform genetic algorithms on the GPU (many orders of magnitude faster than the CPU), and I examined future directions of research that ought to be explored before a large-scale genetic algorithm framework can be implemented.
 
 ## References
 
