@@ -6,9 +6,9 @@ int main(int argc, char *argv[]) {
 
     float optimized_arguments[2];
     float optimized_fitness[2];
-    optimize(10000, optimized_arguments, optimized_fitness, {
-        func(0, pow(args[0] - 1, 2) + pow(args[0] - args[1], 2));
-        func(1, pow(args[0] - 3, 2) + pow(args[0] - args[1], 2));
+    optimize(1000000, optimized_arguments, optimized_fitness, {
+        func(0, args[0] * (args[0] - args[1] - 2));
+        func(1, args[1] * (args[1] - args[0] - 8));
     });
     
     printf("optimal: (");

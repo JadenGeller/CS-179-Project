@@ -29,7 +29,6 @@
             .island_population = 50\
         },\
         /* spawn: */ [] __device__ (island_index index, curandState_t *rand_state) -> fitness_t {\
-            /* TODO: Generalize for any problem? */\
             return 20 * curand_uniform(rand_state) - 10;\
         },\
         /* evaluate: */ [argument_count] __device__ (island_index index, genome_t test_genome, genome_t *competitor_genomes,curandState_t *rand_state) -> fitness_t {\
@@ -48,16 +47,13 @@
         /* mutate: */ [] __device__ (island_index index, size_t genome_index, genome_t *genome, curandState_t *rand_state) {\
             if (genome_index == 0) return; /* Leave the elite alone. */\
             if (curand_uniform(rand_state) > 0.5) {\
-                /* TODO: This is niave. Maybe use distance dependent mutation? */\
                 *genome *= -1.0 / (curand_uniform(rand_state) - 1.1);\
                 *genome += -1.0 / (curand_uniform(rand_state) - 1.1);\
                 *genome -= -1.0 / (curand_uniform(rand_state) - 1.1);\
             }\
         },\
         /* cross: */ [] __device__ (island_index index, genome_t genome_x, genome_t genome_y, curandState_t *rand_state) -> genome_t {\
-            /* GPU TODO: Can we make this more parallel? */\
             float scale = curand_uniform(rand_state);\
-            /* TODO: This is niave. Does it really represent a good cross of genes? */\
             return scale * genome_x + (1 - scale) * genome_y;\
         }\
     );\

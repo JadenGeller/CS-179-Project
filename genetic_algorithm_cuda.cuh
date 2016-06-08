@@ -62,7 +62,6 @@ namespace genetic_algorithm {
                 thread_data *other_memory = thread_memory + bound;
                 syncthreads();
                 
-                // TODO: Allow selection between minimum and maximum.
                 // Copy the maximum value of thread and other to the opposite
                 if (thread_memory->fitness > other_memory->fitness) {
                     // Note that this case must be first since comparison with NaN
@@ -70,8 +69,6 @@ namespace genetic_algorithm {
                     thread_memory->genome = other_memory->genome;
                     thread_memory->fitness = other_memory->fitness;
                 } else {
-                    // Idea: If we end up with too many of the largest value,
-                    //       we could probabilistically skip this branch.
                     other_memory->genome = thread_memory->genome;
                     other_memory->fitness = thread_memory->fitness;
                 }
