@@ -68,7 +68,7 @@ The optimize macro takes a few parameters. First, the number of generations to e
 
 Once run, this will call the kernel and wait for the specified number of generations to complete before copying the result into the statically allocated arrays.
 
-## Results
+## Results and Performance Analysis
 
 The `main.c` file encodes the problem to be optimized. The program can be compiled with the `make` command and run with `./main`. If it is desired that the program is timed, simply run `time ./main`.
 
@@ -133,29 +133,15 @@ In faced quite a few *compiler* **crashes** while building the API. Since the la
 
 One limitation I discovered is that CUDA device lambdas cannot capture other device lambdas. This means that though multi-objective optimization can be done with the genetic algorithm framework, a multi-objective optimization framework that uses lambdas to represent the functions to be optimized cannot be built. I spent many hours trying to find a work around, even attempting to define the functions to be optimized in global functions and pass them as function pointers, but each approach I tried failed, usually due to undocumented limitations of the feature or crashes that exist in the current experimental implementation of device lambdas, expecially when used in conjunction with templates.
 
-I finally worked around this issue by using macros. Since the multi-objective optimization project can be specified manually with the genetic algorithm framework, a macro could transform a problem into the required representation. As such, the `optimize` function was represented as a macro. Behind the scence, it takes the function representation that the developer provides and pastes it into a switch statement that switches on the index of the function to be executed. The `func` macro simply encodes a given case of the switch statement, setting a result local variable to the value and breaking. While this is not an ideal API, it does provide an easy to use, abstracted way to represent Nash equilibrium problems.
+I finally worked around this issue by using macros. Since the multi-objective optimization project can be specified manually with the genetic algorithm framework, a macro could transform a problem into the required representation. As such, the `optimize` function was represented as a macro. Behind the scence, it takes the function representation that the developer provides and pastes it into a switch statement that switches on the index of the function to be executed. The `func` macro simply encodes a given case of the switch statement, setting a result local variable to the value and breaking. While this is not an ideal API, it does provide an easy to use, abstracted way to represent Nash equilibrium problems. If the CUDA device lambda API were to improve, it might be possible to eventually better respresent this.
 
 ## Future Directions
 
-TODO: Talk about seeding
-TODO: Talk about selection
-TODO: Talk about generalizing more
-TODO: Talk about stopping conditions and making sure an island doesn't finish way before the others
-TODO: Talk about focused on CUDA lambdas and parallelization
-TODO: Talk about mutation, cross, etc.
-TODO: Talk about constraints, maximization, etc.
-
-## Installation and Usage
-
-## Performance Analysis
-
-### Nash Equilibrium Computation
-
-TODO (results too)
+This project focused primarily on the implementation of a fast parallelized genetic algorithm framework for computing Nash equilibirum in CUDA. Specifically, a major goal was to use device lambdas as an abstraction. Future work might involve improving the genetic algorithm framework so that it is more general. As it was only used to solve multi-objective optimization problems, it might be more restrictive than necessary for a general framework. For example, the reduction operation might be implementable as a selection lambda such that other algorithms could swap it out. Right now, seeding, mutating, and crossing might be more niave than idea, so this would also benefit from being investigated. Finally, more stopping conditions might be added. Right now, each island evolves a fixed number of generations. It might make sense to dynamically choose the stopping condition based on the current fitness of the island. This might be a difficult problem as it might require some sort of syncronization between the islands however, so it is left for future work.
 
 ## Conclusion
 
-TODO
+Genetic algorithms are an appealing candidate for parallelization. CUDA device lambdas in theory provide a nice abstraction that allows for implementation of custom algorithms without reimplementation of the kernel, but in practice are currently much too limited for a easily usable API. I implemented a basic genetic algorithm framework in CUDA and used to to build another abstract, a multi-objective optimization framework, on top. In building this, I discovered many limitations of CUDA device lambdas and documented them. I confirmed that the island model is a very fast way to perform genetic algorithms on the GPU, and I examined future directions of research that ought to be explored before a large-scale genetic algorithm framework can be implemented.
 
 ## References
 
